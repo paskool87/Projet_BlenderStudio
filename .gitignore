@@ -1,11 +1,16 @@
+
 # Python
 __pycache__/
 *.py[cod]
 .venv/
 
-# Blender
+# Blender: temporary backups
 *.blend1
 *.blend2
+
+# Blender: working scenes
+scenes/
+*.blend
 
 # VS Code
 .vscode/
