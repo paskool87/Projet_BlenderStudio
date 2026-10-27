@@ -1,10 +1,11 @@
 
 import bpy
 
-# MovieStudio - Configuration du plateau
+# MovieStudio - Configuration
 PLATE_SIZE = 20
 GRID_SPACING = 1
 GRID_LINE_THICKNESS = 0.008
+OBJECT_SIZE = 1
 
 
 def clear_scene():
@@ -70,12 +71,26 @@ def create_grid():
     return grid
 
 
+def create_test_object():
+    """Create a cube resting on the floor."""
+    bpy.ops.mesh.primitive_cube_add(
+        size=OBJECT_SIZE,
+        location=(0, 0, OBJECT_SIZE / 2),
+    )
+
+    obj = bpy.context.object
+    obj.name = "MovieStudio_TestObject"
+
+    return obj
+
+
 def main():
     clear_scene()
     create_floor()
     create_grid()
+    create_test_object()
 
-    print("MovieStudio: floor and grid created.")
+    print("MovieStudio: floor, grid and test object created.")
 
 
 if __name__ == "__main__":
