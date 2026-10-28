@@ -1,11 +1,10 @@
-
 bl_info = {
     "name": "MovieStudio",
     "author": "MovieStudio",
-    "version": (0, 5, 0),
+    "version": (0, 6, 0),
     "blender": (5, 1, 0),
     "location": "View3D > Sidebar > MovieStudio",
-    "description": "Import FBX and manually validate object transformations",
+    "description": "Import objects and animate their transformations on Blender timeline",
     "category": "3D View",
 }
 
@@ -164,16 +163,16 @@ class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
 
 class MOVIESTUDIO_OT_validate_transforms(bpy.types.Operator):
     """
-    Apply location, rotation and scale to the current selection.
+    Apply rotation and scale to the current selection.
 
-    The operator deliberately uses Blender's standard Apply
-    Transforms operation rather than implementing custom transforms.
+    Location is deliberately preserved because the object's initial
+    position belongs to the animation timeline.
     """
 
     bl_idname = "moviestudio.validate_transforms"
-    bl_label = "Valider les transformations"
+    bl_label = "Valider orientation et échelle"
     bl_description = (
-        "Apply location, rotation and scale to the selected objects"
+        "Apply rotation and scale while preserving the object's position"
     )
     bl_options = {"REGISTER", "UNDO"}
 
@@ -199,7 +198,7 @@ class MOVIESTUDIO_OT_validate_transforms(bpy.types.Operator):
         # selection. It is intentionally not applied to the whole scene.
         try:
             bpy.ops.object.transform_apply(
-                location=True,
+                location=False,
                 rotation=True,
                 scale=True,
             )
@@ -215,11 +214,86 @@ class MOVIESTUDIO_OT_validate_transforms(bpy.types.Operator):
         self.report(
             {"INFO"},
             (
-                f"Transformations validées pour "
-                f"{len(selected_objects)} objet(s)."
+                f"Orientation et échelle validées pour "
+                f"{len(selected_objects)} objet(s). La position est conservée."
             ),
         )
 
+        return {"FINISHED"}
+
+
+# ============================================================
+# KEYFRAME TRANSFORMS ON THE TIMELINE
+# ============================================================
+
+class MOVIESTUDIO_OT_insert_transform_keyframes(bpy.types.Operator):
+    """Insert location, rotation and scale keyframes for selected objects."""
+
+    bl_idname = "moviestudio.insert_transform_keyframes"
+    bl_label = "Enregistrer les transformations"
+    bl_description = (
+        "Create keyframes for the selected objects at the current timeline frame"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.mode == "OBJECT"
+            and len(context.selected_objects) > 0
+        )
+
+    def execute(self, context):
+        selected_objects = get_selected_objects(context)
+        current_frame = context.scene.frame_current
+        keyed_objects = 0
+
+        for obj in selected_objects:
+            # Key the rotation property matching the object's rotation mode.
+            if obj.rotation_mode == "QUATERNION":
+                rotation_path = "rotation_quaternion"
+            elif obj.rotation_mode == "AXIS_ANGLE":
+                rotation_path = "rotation_axis_angle"
+            else:
+                rotation_path = "rotation_euler"
+
+            try:
+                obj.keyframe_insert(
+                    data_path="location",
+                    frame=current_frame,
+                    group="MovieStudio",
+                )
+                obj.keyframe_insert(
+                    data_path=rotation_path,
+                    frame=current_frame,
+                    group="MovieStudio",
+                )
+                obj.keyframe_insert(
+                    data_path="scale",
+                    frame=current_frame,
+                    group="MovieStudio",
+                )
+                keyed_objects += 1
+            except (RuntimeError, TypeError) as error:
+                self.report(
+                    {"WARNING"},
+                    f"Impossible d'animer {obj.name} : {error}",
+                )
+
+        if keyed_objects == 0:
+            self.report(
+                {"ERROR"},
+                "Aucune transformation n'a pu être enregistrée.",
+            )
+            return {"CANCELLED"}
+
+        self.report(
+            {"INFO"},
+            (
+                f"Transformations enregistrées pour {keyed_objects} objet(s) "
+                f"à l'image {current_frame}."
+            ),
+        )
         return {"FINISHED"}
 
 
@@ -403,13 +477,13 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             layout.separator()
 
             layout.label(
-                text="Réglages manuels dans Blender",
+                text="Préparation : orientation et échelle",
                 icon="TOOL_SETTINGS",
             )
 
-            layout.label(text="Déplacement : G")
             layout.label(text="Rotation : R")
             layout.label(text="Échelle : S")
+            layout.label(text="Position : gérée par la timeline")
 
             layout.separator()
 
@@ -419,13 +493,13 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
 
             layout.label(text="Avant : Y+")
             layout.label(text="Haut : Z+")
-            layout.label(text="Sol conseillé : Z = 0")
+            layout.label(text="Le placement reste libre")
 
             layout.separator()
 
             layout.operator(
                 "moviestudio.validate_transforms",
-                text="Valider les transformations",
+                text="Valider orientation et échelle",
                 icon="CHECKMARK",
             )
 
@@ -434,6 +508,27 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
                 text="Reprendre les réglages",
                 icon="LOOP_BACK",
             )
+
+        layout.separator()
+
+        layout.label(
+            text="Animation et timeline",
+            icon="TIME",
+        )
+        layout.label(
+            text=f"Image actuelle : {context.scene.frame_current}",
+        )
+        layout.label(
+            text="Placez la tête de lecture sur l'image voulue.",
+        )
+        layout.label(
+            text="Sélectionnez les objets à animer.",
+        )
+        layout.operator(
+            "moviestudio.insert_transform_keyframes",
+            text="Enregistrer les transformations",
+            icon="KEY_HLT",
+        )
 
         layout.separator()
 
@@ -457,6 +552,7 @@ CLASSES = (
     MOVIESTUDIO_OT_import_fbx,
     MOVIESTUDIO_OT_validate_transforms,
     MOVIESTUDIO_OT_mark_unprepared,
+    MOVIESTUDIO_OT_insert_transform_keyframes,
     MOVIESTUDIO_OT_create_floor,
     MOVIESTUDIO_PT_panel,
 )
