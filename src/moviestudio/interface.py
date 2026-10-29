@@ -1,6 +1,9 @@
+
 """User interface for the MovieStudio Blender add-on."""
 
 import bpy
+
+from .utils import IMPORT_GROUP_PROPERTY
 
 
 class MOVIESTUDIO_PT_panel(bpy.types.Panel):
@@ -14,6 +17,7 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        active_object = context.active_object
 
         # ----------------------------------------------------
         # IMPORT
@@ -25,6 +29,33 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             text="Importer un FBX",
             icon="IMPORT",
         )
+
+        # ----------------------------------------------------
+        # IMPORT GROUP SELECTION
+        # ----------------------------------------------------
+
+        layout.separator()
+        layout.label(text="Groupe d'importation")
+
+        if (
+            active_object is not None
+            and active_object.get(IMPORT_GROUP_PROPERTY) is not None
+        ):
+            layout.label(
+                text=f"Objet actif : {active_object.name}",
+                icon="OBJECT_DATA",
+            )
+
+            layout.operator(
+                "moviestudio.select_import_group",
+                text="Sélectionner les objets communs",
+                icon="RESTRICT_SELECT_OFF",
+            )
+        else:
+            layout.label(
+                text="Sélectionne un objet importé par MovieStudio.",
+                icon="INFO",
+            )
 
         # ----------------------------------------------------
         # TRANSFORMATION PREPARATION
@@ -46,7 +77,7 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
         )
 
         # ----------------------------------------------------
-        # TIMELINE
+        # ANIMATION
         # ----------------------------------------------------
 
         layout.separator()
@@ -57,6 +88,49 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             text="Insérer des images clés",
             icon="KEY_HLT",
         )
+
+        # ----------------------------------------------------
+        # TIMELINE VISIBILITY
+        # ----------------------------------------------------
+
+        layout.separator()
+        layout.label(text="Visibilité sur la timeline")
+
+        if (
+            active_object is not None
+            and active_object.get(IMPORT_GROUP_PROPERTY) is not None
+        ):
+            visibility_box = layout.box()
+
+            visibility_box.label(
+                text="Groupe d'importation",
+                icon="OBJECT_DATA",
+            )
+
+            visibility_box.prop(
+                active_object,
+                "moviestudio_visibility_start",
+                text="Apparition",
+            )
+
+            visibility_box.prop(
+                active_object,
+                "moviestudio_visibility_end",
+                text="Disparition",
+            )
+
+            visibility_box.label(
+                text="0 = aucune disparition."
+            )
+
+            visibility_box.label(
+                text="Les réglages s'appliquent au groupe entier."
+            )
+        else:
+            layout.label(
+                text="Sélectionne un objet importé par MovieStudio.",
+                icon="INFO",
+            )
 
         # ----------------------------------------------------
         # ENVIRONMENT

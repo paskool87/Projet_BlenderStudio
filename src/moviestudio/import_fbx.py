@@ -1,15 +1,20 @@
+
 """FBX import operator for MovieStudio."""
+
+import uuid
 
 import bpy
 
 from .utils import (
     IMPORTED_PROPERTY,
+    IMPORT_GROUP_PROPERTY,
     PREPARED_PROPERTY,
 )
+from . import visibility
 
 
 class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
-    """Import an FBX file and mark its objects as MovieStudio objects."""
+    """Import an FBX file and group all imported objects."""
 
     bl_idname = "moviestudio.import_fbx"
     bl_label = "Importer un FBX"
@@ -28,6 +33,7 @@ class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
 
     def execute(self, context):
         objects_before = set(context.scene.objects)
+        import_group_id = uuid.uuid4().hex
 
         try:
             bpy.ops.import_scene.fbx(filepath=self.filepath)
@@ -46,11 +52,19 @@ class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
                 {"WARNING"},
                 "Aucun nouvel objet n'a été importé.",
             )
-            return {"FINISHED"}
+            return {"CANCELLED"}
 
         for obj in imported_objects:
             obj[IMPORTED_PROPERTY] = True
             obj[PREPARED_PROPERTY] = False
+            obj[IMPORT_GROUP_PROPERTY] = import_group_id
+
+            # Save visibility before timeline management changes it.
+            visibility.save_original_visibility(obj)
+
+            # Explicit defaults for every newly imported object.
+            obj.moviestudio_visibility_start = 1
+            obj.moviestudio_visibility_end = 0
 
         for obj in context.selected_objects:
             obj.select_set(False)
@@ -60,9 +74,14 @@ class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
 
         context.view_layer.objects.active = imported_objects[0]
 
+        visibility.update_scene_visibility(context.scene)
+
         self.report(
             {"INFO"},
-            f"{len(imported_objects)} objet(s) importé(s).",
+            (
+                f"{len(imported_objects)} objet(s) importé(s) "
+                "et regroupé(s)."
+            ),
         )
 
         return {"FINISHED"}
