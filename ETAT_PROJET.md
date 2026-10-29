@@ -1,65 +1,113 @@
-﻿# MovieStudio - État du projet
+﻿# MovieStudio Blender – État du projet
 
-Dernière mise à jour : 28 octobre 2026
+**Dernière mise à jour : 29 octobre 2026**
 
-## Objectif
+## 1. Objectif
 
-Développer progressivement une extension Blender inspirée de MovieStorm pour créer des décors, importer des objets et personnages, placer des caméras et animer les transformations des objets sur une timeline.
+Développer une extension Blender appelée MovieStudio pour préparer des objets importés, organiser leur visibilité et créer des animations sur la timeline.
 
-## Environnement
-
+Environnement :
 - Blender 5.1.1
-- Python intégré à Blender : 3.13.9
-- Projet versionné avec Git
-- Extension installée localement dans le profil Blender de l'utilisateur
+- Python intégré à Blender
+- Extension Python modulaire
+- Dépôt Git local : `C:\Users\pasca\Desktop\ProjetBlenderStudio\MovieStudio`
 
-## Architecture
+## 2. Architecture actuelle
 
-- `src/moviestudio.py` : prototype historique version 0.6.0, conservé comme référence.
-- `src/moviestudio/__init__.py` : métadonnées et enregistrement de l'extension.
-- `src/moviestudio/utils.py` : propriétés personnalisées et fonctions utilitaires.
-- `src/moviestudio/import_fbx.py` : importation FBX.
-- `src/moviestudio/preparation.py` : validation des transformations.
-- `src/moviestudio/timeline.py` : insertion des images clés.
-- `src/moviestudio/environment.py` : création du sol quadrillé.
-- `src/moviestudio/interface.py` : panneau MovieStudio dans la vue 3D.
-- `scenes/MovieStudio_Prototype.blend` : scène du prototype.
-- `scenes/MovieStudio_Prototype.blend1` : sauvegarde Blender conservée.
+```text
+MovieStudio/
+├── README.md
+├── ETAT_PROJET.md
+├── scenes/
+│   ├── MovieStudio_Prototype.blend
+│   └── MovieStudio_Prototype.blend1
+└── src/
+    ├── moviestudio.py
+    └── moviestudio/
+        ├── __init__.py
+        ├── utils.py
+        ├── import_fbx.py
+        ├── preparation.py
+        ├── timeline.py
+        ├── environment.py
+        ├── interface.py
+        ├── selection.py
+        └── visibility.py
+```
 
-## Réalisations
+Le fichier `src/moviestudio.py` est l'ancien prototype. Il doit être conservé intact.
 
-- Répartition du code du prototype en plusieurs modules Python.
-- Conservation du fichier historique `src/moviestudio.py`.
-- Création du panneau MovieStudio et de ses six classes enregistrables.
-- Importation FBX avec identification des objets importés.
-- Validation des rotations et des échelles sans appliquer la position.
-- Insertion d'images clés de position, rotation et échelle.
-- Création d'un sol quadrillé avec affichage des faces et des arêtes.
-- Installation locale du package dans le dossier des extensions Blender.
+Les scènes `.blend` existantes ne doivent pas être modifiées sans nécessité explicite.
 
-## Vérifications effectuées
+## 3. Fonctionnalités en place
 
-- Syntaxe Python vérifiée pour les sept fichiers du package.
-- Import du package réussi dans Blender 5.1.1.
-- Enregistrement et désenregistrement des six classes réussis.
-- Panneau MovieStudio affiché dans la vue 3D.
-- Installation locale et activation de l'extension vérifiées.
+### Import et sélection
+- Import de fichiers FBX depuis l'extension.
+- Identification des objets importés par MovieStudio.
+- Attribution d'un identifiant commun aux objets issus d'un même import.
+- Bouton « Sélectionner les objets communs » dans le panneau latéral.
+- Les groupes provenant d'importations différentes restent indépendants.
 
-## Points restant à tester
+### Visibilité sur la timeline
+- Deux champs de réglage : **Apparition** et **Disparition**.
+- Les réglages sont appliqués aux objets appartenant au même groupe d'importation.
+- La visibilité évolue en fonction de la frame courante.
+- Aucun bouton d'activation supplémentaire n'est nécessaire.
+- L'activation de l'extension a été corrigée pour éviter l'accès à `bpy.context.scene` dans un contexte Blender restreint.
 
-- Importation d'un fichier FBX réel.
-- Validation des transformations sur des objets de test.
-- Insertion et lecture des images clés sur la timeline.
-- Création du sol quadrillé après la correction de son affichage.
-- Vérification du rechargement de l'extension après une modification du code source.
+### Préparation et animation
+L'architecture comprend également des modules consacrés à :
+- la préparation et à la validation des transformations ;
+- l'insertion de keyframes sur la timeline ;
+- la création du sol et du quadrillage ;
+- l'interface du panneau MovieStudio.
 
-## Règles de travail
+Ces fonctionnalités devront être retestées si une modification ultérieure affecte leur fonctionnement.
 
-- Conserver `src/moviestudio.py` comme référence historique.
-- Ne pas déplacer ni supprimer les fichiers `.blend` sans décision explicite.
-- Développer et vérifier les fonctionnalités progressivement.
-- Mettre à jour ce document à chaque étape importante.
+## 4. Dernier état validé par l'utilisateur
 
-## Prochaine étape
+Le 29 octobre 2026, l'utilisateur a confirmé que :
+- la sélection des objets communs fonctionne ;
+- les réglages Apparition et Disparition fonctionnent ;
+- l'extension fonctionne à nouveau après correction de son enregistrement.
 
-Tester individuellement les fonctionnalités depuis l'interface Blender, puis poursuivre le développement des déplacements d'objets sur la timeline.
+Un commit a été créé après cette validation.
+
+**Identifiant et message exacts du commit :** à récupérer avec `git log -1 --oneline`. Ne pas inventer ces informations.
+
+## 5. Limites et améliorations à venir
+
+### Priorité 1 – Sélection accessible depuis le viewport
+Ajouter un bouton de sélection du groupe toujours accessible dans la vue 3D, sans devoir ouvrir le panneau latéral à chaque utilisation.
+
+Le mécanisme exact reste à définir lors de l'implémentation.
+
+### Priorité 2 – Réapparition des objets existants
+Actuellement, pour faire réapparaître un objet semblable, l'utilisateur doit importer un nouvel objet.
+
+Il faut étudier une solution permettant de réutiliser les objets déjà importés et de modifier leur période de visibilité, sans importation supplémentaire.
+
+### Étapes suivantes
+Après ces deux améliorations :
+- tester les changements directement dans Blender ;
+- vérifier que les groupes restent indépendants ;
+- vérifier le comportement aux frames d'apparition et de disparition ;
+- créer un nouveau commit après validation réelle.
+
+## 6. Méthode de travail
+
+- Procéder par petites étapes.
+- Modifier et tester directement dans Blender, sans créer de fichiers de test séparés.
+- Fournir le contenu complet de chaque fichier Python modifié, jamais uniquement des extraits.
+- Conserver les identifiants du code en anglais et l'interface utilisateur en français.
+- Ne pas toucher aux scènes existantes ni à l'ancien prototype sans raison.
+- Ne pas annoncer un test réussi sans résultat vérifié.
+- Créer un commit à la fin d'une étape fonctionnelle validée.
+
+## 7. Point de reprise
+
+Reprendre à partir du dernier commit validé.
+
+**Prochaine tâche :** rendre le bouton de sélection d'un groupe d'importation accessible en permanence depuis la vue 3D de Blender.
+
+Ne pas reprendre les fonctionnalités déjà validées. Traiter ensuite le problème de réapparition des objets existants.
