@@ -24,10 +24,24 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
         # ----------------------------------------------------
 
         layout.label(text="Importation")
+
         layout.operator(
             "moviestudio.import_fbx",
             text="Importer un FBX",
             icon="IMPORT",
+        )
+
+        # ----------------------------------------------------
+        # CHARACTER ANALYSIS
+        # ----------------------------------------------------
+
+        layout.separator()
+        layout.label(text="Personnage")
+
+        layout.operator(
+            "moviestudio.analyze_character",
+            text="Analyser le personnage",
+            icon="ARMATURE_DATA",
         )
 
         # ----------------------------------------------------

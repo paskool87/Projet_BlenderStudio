@@ -4,7 +4,7 @@
 bl_info = {
     "name": "MovieStudio",
     "author": "MovieStudio",
-    "version": (0, 9, 1),
+    "version": (0, 9, 2),
     "blender": (5, 1, 0),
     "location": "View3D > Sidebar > MovieStudio",
     "description": (
@@ -24,6 +24,7 @@ from .preparation import (
 from .timeline import MOVIESTUDIO_OT_insert_transform_keyframes
 from .environment import MOVIESTUDIO_OT_create_floor
 from .selection import MOVIESTUDIO_OT_select_import_group
+from .characters import MOVIESTUDIO_OT_analyze_character
 from . import visibility
 from .interface import MOVIESTUDIO_PT_panel
 
@@ -35,6 +36,7 @@ CLASSES = (
     MOVIESTUDIO_OT_insert_transform_keyframes,
     MOVIESTUDIO_OT_create_floor,
     MOVIESTUDIO_OT_select_import_group,
+    MOVIESTUDIO_OT_analyze_character,
     MOVIESTUDIO_PT_panel,
 )
 
@@ -50,8 +52,6 @@ def register():
             bpy.utils.register_class(cls)
             registered_classes.append(cls)
 
-        # Do not access bpy.context.scene during registration.
-        # Blender may use a restricted context here.
         visibility.register_handler()
 
     except Exception:
