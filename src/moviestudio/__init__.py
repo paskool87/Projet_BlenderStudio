@@ -4,7 +4,7 @@
 bl_info = {
     "name": "MovieStudio",
     "author": "MovieStudio",
-    "version": (0, 9, 2),
+    "version": (0, 9, 3),
     "blender": (5, 1, 0),
     "location": "View3D > Sidebar > MovieStudio",
     "description": (
@@ -24,7 +24,10 @@ from .preparation import (
 from .timeline import MOVIESTUDIO_OT_insert_transform_keyframes
 from .environment import MOVIESTUDIO_OT_create_floor
 from .selection import MOVIESTUDIO_OT_select_import_group
-from .characters import MOVIESTUDIO_OT_analyze_character
+from .characters import (
+    MOVIESTUDIO_OT_analyze_character,
+    MOVIESTUDIO_OT_compare_rigs,
+)
 from . import visibility
 from .interface import MOVIESTUDIO_PT_panel
 
@@ -37,6 +40,7 @@ CLASSES = (
     MOVIESTUDIO_OT_create_floor,
     MOVIESTUDIO_OT_select_import_group,
     MOVIESTUDIO_OT_analyze_character,
+    MOVIESTUDIO_OT_compare_rigs,
     MOVIESTUDIO_PT_panel,
 )
 

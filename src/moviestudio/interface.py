@@ -44,6 +44,16 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             icon="ARMATURE_DATA",
         )
 
+        layout.operator(
+            "moviestudio.compare_rigs",
+            text="Comparer Mixamo et Meta-Rig",
+            icon="BONE_DATA",
+        )
+
+        layout.label(
+            text="Sélectionne les deux armatures pour comparer."
+        )
+
         # ----------------------------------------------------
         # IMPORT GROUP SELECTION
         # ----------------------------------------------------

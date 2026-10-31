@@ -113,7 +113,7 @@ def classify_armature(armature):
 
 
 def check_mixamo_t_pose(armature):
-    """Estimate whether Mixamo arms are in a T-pose."""
+    """Estimate whether Mixamo rest-pose arms are in a T-pose."""
 
     bone_data = armature.data.bones
 
@@ -203,6 +203,125 @@ def analyze_mesh_weights(mesh, armature):
         "unmatched_weighted_vertices": len(
             unmatched_weighted_vertices
         ),
+    }
+
+
+def vector_to_tuple(vector):
+    """Convert a Blender vector into plain Python coordinates."""
+
+    return (
+        float(vector.x),
+        float(vector.y),
+        float(vector.z),
+    )
+
+
+def matrix_to_tuple(matrix):
+    """Convert a Blender matrix into plain Python values."""
+
+    return tuple(
+        tuple(float(value) for value in row)
+        for row in matrix
+    )
+
+
+def extract_skeleton_data(armature, objects=None):
+    """Extract the complete rest skeleton in world coordinates.
+
+    This function reads armature.data.bones, not pose.bones.
+    Existing animations and current poses therefore do not
+    affect the extracted reference geometry.
+
+    No scene objects or armature data are modified.
+    """
+
+    if armature is None or armature.type != "ARMATURE":
+        raise ValueError(
+            "L'objet fourni doit être une armature."
+        )
+
+    rig_type = classify_armature(armature)
+
+    bones_data = {}
+
+    for bone in armature.data.bones:
+        world_head = (
+            armature.matrix_world @ bone.head_local
+        )
+
+        world_tail = (
+            armature.matrix_world @ bone.tail_local
+        )
+
+        world_matrix = (
+            armature.matrix_world @ bone.matrix_local
+        )
+
+        direction = world_tail - world_head
+        length = direction.length
+
+        if length > 0:
+            normalized_direction = direction.normalized()
+        else:
+            normalized_direction = direction
+
+        children = sorted(
+            child.name for child in bone.children
+        )
+
+        bones_data[bone.name] = {
+            "name": bone.name,
+            "parent": (
+                bone.parent.name
+                if bone.parent is not None
+                else None
+            ),
+            "children": children,
+            "head": vector_to_tuple(world_head),
+            "tail": vector_to_tuple(world_tail),
+            "direction": vector_to_tuple(
+                normalized_direction
+            ),
+            "length": float(length),
+            "matrix": matrix_to_tuple(world_matrix),
+            "connected": bool(bone.use_connect),
+            "deform": bool(bone.use_deform),
+        }
+
+    if objects is None:
+        objects = [armature]
+
+    meshes_data = []
+
+    for mesh in get_associated_meshes(objects, armature):
+        meshes_data.append({
+            "name": mesh.name,
+            "vertices": len(mesh.data.vertices),
+            "weights": analyze_mesh_weights(mesh, armature),
+        })
+
+    is_t_pose = None
+    t_pose_message = None
+
+    if rig_type == "MIXAMO":
+        is_t_pose, t_pose_message = check_mixamo_t_pose(
+            armature
+        )
+
+    return {
+        "armature": armature.name,
+        "type": rig_type,
+        "coordinate_space": "WORLD",
+        "reference_pose": "REST",
+        "bone_count": len(bones_data),
+        "deform_bones": sum(
+            1 for bone in bones_data.values()
+            if bone["deform"]
+        ),
+        "t_pose": is_t_pose,
+        "t_pose_message": t_pose_message,
+        "bones": bones_data,
+        "meshes": meshes_data,
     }
 
 
