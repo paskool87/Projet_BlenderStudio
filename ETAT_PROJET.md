@@ -11,7 +11,7 @@ MovieStudio est un add-on Blender inspiré de MovieStorm. Il vise à simplifier 
 Objectifs :
 - Créer et organiser des décors.
 - Importer et préparer des personnages.
-- Gérer leur apparition et disparition dans la timeline.
+- Gérer leur apparition et leur disparition dans la timeline.
 - Créer des déplacements et animations.
 - Gérer les caméras et les expressions.
 
@@ -63,7 +63,7 @@ Le projet utilise le Human Meta-Rig de Rigify comme référence universelle.
 Principes :
 - La référence originale reste intacte.
 - Chaque personnage dispose d'une copie de travail indépendante.
-- L'adaptation conserve la structure Rigify.
+- L'adaptation conserve autant que possible la structure Rigify nécessaire.
 - Le personnage original et son armature ne sont jamais modifiés.
 - Le rig final sera généré ultérieurement avec Rigify.
 
@@ -96,39 +96,60 @@ Le module `metarig_template.py` permet :
 
 Test validé : copie de 159 os, indépendante de la référence.
 
-## 5. Dernière étape validée : préparation de l'adaptation
+## 5. Adaptation géométrique du Meta-Rig
 
-Le module `metarig_adapter.py` permet désormais de détecter automatiquement le personnage Mixamo dans la scène et de préparer les positions correspondantes.
+Le module `metarig_adapter.py` réalise désormais l'adaptation géométrique de la copie de travail du Meta-Rig aux proportions du personnage Mixamo.
 
-Test réalisé avec un personnage Mixamo importé :
+### Correspondances adaptées
+
+Le test a été réalisé sur le personnage Mixamo `Armature` :
 
 | Élément | Résultat |
 |---|---:|
-| Armature détectée | Armature |
-| Nombre d'os Mixamo | 65 |
-| Correspondances | 22 |
-| Positions préparées | 22 |
-| Modifications géométriques | Aucune |
+| Os Mixamo détectés | 65 |
+| Correspondances principales | 22 |
+| Correspondances des doigts | 30 |
+| Total des os adaptés | 52 |
+| Os palm supprimés | 8 |
+| Os ignorés | 0 |
 
-Les correspondances couvrent :
+Les correspondances principales couvrent :
 - Bassin et colonne vertébrale.
 - Cou et tête.
 - Épaules, bras et mains.
 - Cuisses, jambes et pieds.
 
-**Résultat :** préparation réussie. Aucune modification géométrique n'a encore été effectuée.
+Les 30 os des doigts sont également adaptés aux positions du squelette Mixamo.
 
-## 6. Prochaine étape
+### Suppression des os palm
 
-Développer l'adaptation géométrique réelle de la copie du Meta-Rig.
+Les huit os `palm` du Meta-Rig Rigify ne possèdent pas de correspondance dans le squelette Mixamo.
+
+Le module les supprime automatiquement et transfère leurs enfants vers les os des mains correspondants, sans conserver de liaison incorrecte.
+
+### Résultat du test
+
+**Adaptation géométrique validée dans Blender.**
+
+- 52 os adaptés.
+- 8 os palm supprimés automatiquement.
+- Aucun os ignoré.
+- Copie de travail utilisée pour les modifications.
+- Référence originale préservée.
+- Personnage Mixamo original non modifié.
+
+## 6. Prochaine étape : adaptation du visage
+
+La prochaine étape consiste à diagnostiquer les os faciaux du personnage Mixamo et ceux du Meta-Rig avant toute modification.
 
 Objectifs :
-1. Adapter les positions des os aux proportions du personnage Mixamo.
-2. Adapter les bras à sa T-pose.
-3. Préserver la hiérarchie et la structure Rigify.
-4. Préserver les contrôleurs faciaux.
-5. Ne jamais modifier le personnage original.
-6. Vérifier visuellement et géométriquement le résultat avant de poursuivre.
+1. Identifier les os des yeux et de la mâchoire présents dans le squelette Mixamo.
+2. Comparer leurs positions avec celles du Meta-Rig.
+3. Déterminer les os faciaux Rigify qui doivent être adaptés.
+4. Préserver la structure faciale et les contrôleurs Rigify.
+5. Vérifier le résultat avant la génération du rig.
+
+Aucune adaptation faciale ne doit être effectuée avant d'avoir obtenu les données réelles des deux squelettes.
 
 Le rig final et le retargeting seront traités dans des étapes ultérieures.
 
