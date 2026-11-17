@@ -66,7 +66,7 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
 
         layout.operator(
             "moviestudio.validate_transforms",
-            text="Valider les transformations",
+            text="Valider orientation et échelle",
             icon="CHECKMARK",
         )
 

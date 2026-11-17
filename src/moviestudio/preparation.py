@@ -1,3 +1,4 @@
+
 """Transformation preparation operators for MovieStudio."""
 
 import bpy
@@ -13,7 +14,7 @@ class MOVIESTUDIO_OT_validate_transforms(bpy.types.Operator):
     """Apply rotation and scale to selected objects."""
 
     bl_idname = "moviestudio.validate_transforms"
-    bl_label = "Valider les transformations"
+    bl_label = "Valider orientation et échelle"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -34,7 +35,7 @@ class MOVIESTUDIO_OT_validate_transforms(bpy.types.Operator):
 
         self.report(
             {"INFO"},
-            f"Transformations validées pour {len(selected_objects)} objet(s).",
+            f"Orientation et échelle validées pour {len(selected_objects)} objet(s).",
         )
 
         return {"FINISHED"}

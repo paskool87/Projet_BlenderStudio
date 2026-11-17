@@ -1,8 +1,7 @@
+
 """Timeline operators for MovieStudio."""
 
 import bpy
-
-from .utils import is_prepared
 
 
 class MOVIESTUDIO_OT_insert_transform_keyframes(bpy.types.Operator):
@@ -19,22 +18,6 @@ class MOVIESTUDIO_OT_insert_transform_keyframes(bpy.types.Operator):
     def execute(self, context):
         selected_objects = list(context.selected_objects)
         current_frame = context.scene.frame_current
-
-        unprepared_objects = [
-            obj
-            for obj in selected_objects
-            if not is_prepared(obj)
-        ]
-
-        if unprepared_objects:
-            self.report(
-                {"WARNING"},
-                (
-                    f"{len(unprepared_objects)} objet(s) non préparé(s). "
-                    "Validez leurs transformations avant l'animation."
-                ),
-            )
-            return {"CANCELLED"}
 
         for obj in selected_objects:
             obj.keyframe_insert(
