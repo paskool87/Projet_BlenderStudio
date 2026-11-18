@@ -34,6 +34,7 @@ class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
     def execute(self, context):
         objects_before = set(context.scene.objects)
         import_group_id = uuid.uuid4().hex
+        current_frame = context.scene.frame_current
 
         try:
             bpy.ops.import_scene.fbx(filepath=self.filepath)
@@ -59,11 +60,9 @@ class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
             obj[PREPARED_PROPERTY] = False
             obj[IMPORT_GROUP_PROPERTY] = import_group_id
 
-            # Save visibility before timeline management changes it.
             visibility.save_original_visibility(obj)
 
-            # Explicit defaults for every newly imported object.
-            obj.moviestudio_visibility_start = 1
+            obj.moviestudio_visibility_start = current_frame
             obj.moviestudio_visibility_end = 0
 
         for obj in context.selected_objects:
@@ -80,7 +79,7 @@ class MOVIESTUDIO_OT_import_fbx(bpy.types.Operator):
             {"INFO"},
             (
                 f"{len(imported_objects)} objet(s) importé(s) "
-                "et regroupé(s)."
+                f"et regroupé(s) à partir de l'image {current_frame}."
             ),
         )
 

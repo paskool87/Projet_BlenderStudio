@@ -107,16 +107,22 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
                 icon="OBJECT_DATA",
             )
 
-            visibility_box.prop(
-                active_object,
-                "moviestudio_visibility_start",
-                text="Apparition",
+            visibility_box.operator(
+                "moviestudio.set_visibility_start",
+                text=(
+                    f"Apparition : "
+                    f"image {active_object.moviestudio_visibility_start}"
+                ),
+                icon="PLAY",
             )
 
-            visibility_box.prop(
-                active_object,
-                "moviestudio_visibility_end",
-                text="Disparition",
+            visibility_box.operator(
+                "moviestudio.set_visibility_end",
+                text=(
+                    f"Disparition : "
+                    f"image {active_object.moviestudio_visibility_end}"
+                ),
+                icon="TIME",
             )
 
             visibility_box.label(

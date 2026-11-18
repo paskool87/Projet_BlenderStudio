@@ -97,7 +97,6 @@ def update_visibility_properties(self, context):
     if _SYNCING_VISIBILITY:
         return
 
-    # Blender may provide a restricted context without a scene.
     scene = getattr(context, "scene", None)
 
     if scene is None:
@@ -124,6 +123,132 @@ def update_visibility_properties(self, context):
         _SYNCING_VISIBILITY = False
 
     update_scene_visibility(scene)
+
+
+class MOVIESTUDIO_OT_set_visibility_start(bpy.types.Operator):
+    """Set appearance using a frame input dialog."""
+
+    bl_idname = "moviestudio.set_visibility_start"
+    bl_label = "Définir l'apparition"
+    bl_options = {"REGISTER", "UNDO"}
+
+    frame_value: bpy.props.IntProperty(
+        name="Image d'apparition",
+        description="Première image où l'objet devient visible",
+        default=1,
+        min=1,
+    )
+
+    target_object_name: bpy.props.StringProperty(
+        options={"HIDDEN"},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return (
+            obj is not None
+            and obj.get(IMPORT_GROUP_PROPERTY) is not None
+            and context.scene is not None
+        )
+
+    def invoke(self, context, event):
+        obj = context.active_object
+
+        self.target_object_name = obj.name
+        self.frame_value = context.scene.frame_current
+
+        return context.window_manager.invoke_props_dialog(
+            self,
+            width=240,
+        )
+
+    def draw(self, context):
+        self.layout.prop(self, "frame_value", text="Image")
+
+    def execute(self, context):
+        obj = bpy.data.objects.get(self.target_object_name)
+
+        if obj is None:
+            self.report(
+                {"ERROR"},
+                "L'objet sélectionné n'existe plus.",
+            )
+            return {"CANCELLED"}
+
+        obj.moviestudio_visibility_start = self.frame_value
+
+        self.report(
+            {"INFO"},
+            f"Apparition définie à l'image {self.frame_value}.",
+        )
+
+        return {"FINISHED"}
+
+
+class MOVIESTUDIO_OT_set_visibility_end(bpy.types.Operator):
+    """Set disappearance using a frame input dialog."""
+
+    bl_idname = "moviestudio.set_visibility_end"
+    bl_label = "Définir la disparition"
+    bl_options = {"REGISTER", "UNDO"}
+
+    frame_value: bpy.props.IntProperty(
+        name="Image de disparition",
+        description="Première image où l'objet devient invisible",
+        default=1,
+        min=0,
+    )
+
+    target_object_name: bpy.props.StringProperty(
+        options={"HIDDEN"},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return (
+            obj is not None
+            and obj.get(IMPORT_GROUP_PROPERTY) is not None
+            and context.scene is not None
+        )
+
+    def invoke(self, context, event):
+        obj = context.active_object
+
+        self.target_object_name = obj.name
+        self.frame_value = context.scene.frame_current
+
+        return context.window_manager.invoke_props_dialog(
+            self,
+            width=240,
+        )
+
+    def draw(self, context):
+        self.layout.prop(self, "frame_value", text="Image")
+        self.layout.label(
+            text="0 = aucune disparition",
+            icon="INFO",
+        )
+
+    def execute(self, context):
+        obj = bpy.data.objects.get(self.target_object_name)
+
+        if obj is None:
+            self.report(
+                {"ERROR"},
+                "L'objet sélectionné n'existe plus.",
+            )
+            return {"CANCELLED"}
+
+        obj.moviestudio_visibility_end = self.frame_value
+
+        self.report(
+            {"INFO"},
+            f"Disparition définie à l'image {self.frame_value}.",
+        )
+
+        return {"FINISHED"}
 
 
 def register_properties():

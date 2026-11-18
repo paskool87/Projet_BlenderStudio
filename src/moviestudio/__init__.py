@@ -25,6 +25,10 @@ from .timeline import MOVIESTUDIO_OT_insert_transform_keyframes
 from .environment import MOVIESTUDIO_OT_create_floor
 from .selection import MOVIESTUDIO_OT_select_import_group
 from . import visibility
+from .visibility import (
+    MOVIESTUDIO_OT_set_visibility_start,
+    MOVIESTUDIO_OT_set_visibility_end,
+)
 from .interface import MOVIESTUDIO_PT_panel
 
 
@@ -35,6 +39,8 @@ CLASSES = (
     MOVIESTUDIO_OT_insert_transform_keyframes,
     MOVIESTUDIO_OT_create_floor,
     MOVIESTUDIO_OT_select_import_group,
+    MOVIESTUDIO_OT_set_visibility_start,
+    MOVIESTUDIO_OT_set_visibility_end,
     MOVIESTUDIO_PT_panel,
 )
 
@@ -50,8 +56,6 @@ def register():
             bpy.utils.register_class(cls)
             registered_classes.append(cls)
 
-        # Do not access bpy.context.scene during registration.
-        # Blender may use a restricted context here.
         visibility.register_handler()
 
     except Exception:
