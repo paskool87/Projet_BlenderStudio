@@ -4,7 +4,7 @@
 bl_info = {
     "name": "MovieStudio",
     "author": "MovieStudio",
-    "version": (0, 9, 1),
+    "version": (0, 9, 2),
     "blender": (5, 1, 0),
     "location": "View3D > Sidebar > MovieStudio",
     "description": (
@@ -16,7 +16,7 @@ bl_info = {
 
 import bpy
 
-from .import_fbx import MOVIESTUDIO_OT_import_fbx
+from .import_blend import MOVIESTUDIO_OT_import_blend
 from .preparation import (
     MOVIESTUDIO_OT_validate_transforms,
     MOVIESTUDIO_OT_mark_unprepared,
@@ -33,7 +33,7 @@ from .interface import MOVIESTUDIO_PT_panel
 
 
 CLASSES = (
-    MOVIESTUDIO_OT_import_fbx,
+    MOVIESTUDIO_OT_import_blend,
     MOVIESTUDIO_OT_validate_transforms,
     MOVIESTUDIO_OT_mark_unprepared,
     MOVIESTUDIO_OT_insert_transform_keyframes,

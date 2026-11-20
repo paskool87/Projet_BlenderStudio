@@ -24,9 +24,10 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
         # ----------------------------------------------------
 
         layout.label(text="Importation")
+
         layout.operator(
-            "moviestudio.import_fbx",
-            text="Importer un FBX",
+            "moviestudio.import_blend",
+            text="Importer un objet",
             icon="IMPORT",
         )
 
@@ -35,7 +36,7 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
         # ----------------------------------------------------
 
         layout.separator()
-        layout.label(text="Groupe d'importation")
+        layout.label(text="Objet MovieStudio")
 
         if (
             active_object is not None
@@ -48,7 +49,7 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
 
             layout.operator(
                 "moviestudio.select_import_group",
-                text="Sélectionner les objets communs",
+                text="Sélectionner tous les composants",
                 icon="RESTRICT_SELECT_OFF",
             )
         else:
@@ -103,7 +104,7 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             visibility_box = layout.box()
 
             visibility_box.label(
-                text="Groupe d'importation",
+                text="Objet MovieStudio",
                 icon="OBJECT_DATA",
             )
 
@@ -130,7 +131,7 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             )
 
             visibility_box.label(
-                text="Les réglages s'appliquent au groupe entier."
+                text="Les réglages s'appliquent à l'objet entier."
             )
         else:
             layout.label(
