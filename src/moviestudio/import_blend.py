@@ -4,7 +4,7 @@
 import uuid
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 from .utils import (
     IMPORTED_PROPERTY,
@@ -38,7 +38,6 @@ class MOVIESTUDIO_OT_import_blend(bpy.types.Operator):
         import_group_id = uuid.uuid4().hex
 
         try:
-            # Import all objects from the Blender file.
             with bpy.data.libraries.load(
                 self.filepath,
                 link=False,
@@ -58,7 +57,6 @@ class MOVIESTUDIO_OT_import_blend(bpy.types.Operator):
                 )
                 return {"CANCELLED"}
 
-            # Exclude cameras, lights, empties and armatures.
             ignored_types = {
                 "EMPTY",
                 "CAMERA",
@@ -85,14 +83,27 @@ class MOVIESTUDIO_OT_import_blend(bpy.types.Operator):
                 )
                 return {"CANCELLED"}
 
-            # Link only the retained objects to the current scene.
+            imported_set = set(imported_objects)
+
+            # Link retained objects to the current scene.
             for obj in imported_objects:
                 if obj.name not in scene.objects:
                     scene.collection.objects.link(obj)
 
-            bpy.context.view_layer.update()
+            context.view_layer.update()
 
-            # Calculate the world-space bounds using evaluated geometry.
+            # Save original world matrices and parent relationships.
+            original_matrices = {
+                obj: obj.matrix_world.copy()
+                for obj in imported_objects
+            }
+
+            original_parents = {
+                obj: obj.parent
+                for obj in imported_objects
+            }
+
+            # Calculate the complete object's world-space bounds.
             depsgraph = context.evaluated_depsgraph_get()
             bounding_points = []
 
@@ -105,51 +116,96 @@ class MOVIESTUDIO_OT_import_blend(bpy.types.Operator):
                         world_matrix @ Vector(corner)
                     )
 
-            if bounding_points:
-                min_x = min(point.x for point in bounding_points)
-                max_x = max(point.x for point in bounding_points)
-                min_y = min(point.y for point in bounding_points)
-                max_y = max(point.y for point in bounding_points)
-                min_z = min(point.z for point in bounding_points)
+            if not bounding_points:
+                self.report(
+                    {"WARNING"},
+                    "Impossible de calculer les dimensions de l'objet.",
+                )
+                return {"CANCELLED"}
 
-                base_center = Vector((
-                    (min_x + max_x) / 2,
-                    (min_y + max_y) / 2,
-                    min_z,
-                ))
-            else:
-                base_center = Vector((0, 0, 0))
+            min_x = min(point.x for point in bounding_points)
+            max_x = max(point.x for point in bounding_points)
+            min_y = min(point.y for point in bounding_points)
+            max_y = max(point.y for point in bounding_points)
+            min_z = min(point.z for point in bounding_points)
+
+            # Center of the bottom face of the complete object.
+            base_center = Vector((
+                (min_x + max_x) / 2,
+                (min_y + max_y) / 2,
+                min_z,
+            ))
+
+            # Translate every component by the same world-space offset.
+            translation = Matrix.Translation(-base_center)
 
             # Create the MovieStudio root at the world origin.
             root = bpy.data.objects.new(
                 "MovieStudio_Object",
                 None,
             )
-
             scene.collection.objects.link(root)
 
             root.empty_display_type = "PLAIN_AXES"
             root.empty_display_size = 0.5
+            root.location = (0, 0, 0)
+            root.rotation_euler = (0, 0, 0)
+            root.scale = (1, 1, 1)
 
-            # Preserve the original world transformations.
-            imported_set = set(imported_objects)
+            # Find the nearest retained ancestor for each component.
+            new_parents = {}
 
             for obj in imported_objects:
-                if obj.parent not in imported_set:
-                    world_matrix = obj.matrix_world.copy()
+                parent = original_parents[obj]
 
-                    obj.parent = root
-                    obj.matrix_world = world_matrix
+                while parent is not None and parent not in imported_set:
+                    parent = parent.parent
 
-            # Remove excluded objects from the Blender scene data.
+                new_parents[obj] = parent if parent in imported_set else root
+
+            # Process parents before their children.
+            def hierarchy_depth(obj):
+                depth = 0
+                parent = original_parents[obj]
+                visited = set()
+
+                while parent is not None and parent not in visited:
+                    visited.add(parent)
+                    depth += 1
+                    parent = parent.parent
+
+                return depth
+
+            ordered_objects = sorted(
+                imported_objects,
+                key=hierarchy_depth,
+            )
+
+            # Rebuild the hierarchy and preserve world transformations.
+            for obj in ordered_objects:
+                target_world = (
+                    translation @ original_matrices[obj]
+                )
+
+                obj.parent = new_parents[obj]
+                obj.parent_type = "OBJECT"
+                obj.parent_bone = ""
+                obj.matrix_parent_inverse = Matrix.Identity(4)
+
+                context.view_layer.update()
+
+                obj.matrix_world = target_world
+
+                context.view_layer.update()
+
+            # Remove excluded objects after rebuilding the hierarchy.
             for obj in ignored_objects:
                 bpy.data.objects.remove(
                     obj,
                     do_unlink=True,
                 )
 
-            # Move the entire imported object as one block.
-            root.location = -base_center
+            context.view_layer.update()
 
             # Identify the complete MovieStudio object.
             root[IMPORTED_PROPERTY] = True
@@ -190,7 +246,7 @@ class MOVIESTUDIO_OT_import_blend(bpy.types.Operator):
             (
                 f"Objet importé avec {len(imported_objects)} composant(s), "
                 f"{len(ignored_objects)} élément(s) ignoré(s), "
-                f"et posé au sol à partir de l'image {current_frame}."
+                f"origine placée au centre de la base."
             ),
         )
 

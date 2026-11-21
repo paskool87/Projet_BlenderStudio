@@ -4,7 +4,7 @@
 bl_info = {
     "name": "MovieStudio",
     "author": "MovieStudio",
-    "version": (0, 9, 2),
+    "version": (0, 9, 3),
     "blender": (5, 1, 0),
     "location": "View3D > Sidebar > MovieStudio",
     "description": (
@@ -23,7 +23,11 @@ from .preparation import (
 )
 from .timeline import MOVIESTUDIO_OT_insert_transform_keyframes
 from .environment import MOVIESTUDIO_OT_create_floor
-from .selection import MOVIESTUDIO_OT_select_import_group
+from .selection import (
+    MOVIESTUDIO_OT_select_import_group,
+    register_selection_handler,
+    unregister_selection_handler,
+)
 from . import visibility
 from .visibility import (
     MOVIESTUDIO_OT_set_visibility_start,
@@ -46,7 +50,7 @@ CLASSES = (
 
 
 def register():
-    """Register MovieStudio classes and timeline visibility."""
+    """Register MovieStudio classes and handlers."""
 
     visibility.register_properties()
     registered_classes = []
@@ -57,8 +61,10 @@ def register():
             registered_classes.append(cls)
 
         visibility.register_handler()
+        register_selection_handler()
 
     except Exception:
+        unregister_selection_handler()
         visibility.unregister_handler()
 
         for cls in reversed(registered_classes):
@@ -69,8 +75,9 @@ def register():
 
 
 def unregister():
-    """Unregister MovieStudio classes and timeline visibility."""
+    """Unregister MovieStudio classes and handlers."""
 
+    unregister_selection_handler()
     visibility.unregister_handler()
 
     for cls in reversed(CLASSES):

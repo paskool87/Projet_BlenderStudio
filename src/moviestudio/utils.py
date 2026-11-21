@@ -73,7 +73,7 @@ def get_import_group(obj):
 
 
 def get_import_group_objects(obj, scene=None):
-    """Return all objects belonging to the same FBX import."""
+    """Return all objects belonging to the same MovieStudio import."""
 
     if obj is None:
         return []
@@ -93,8 +93,33 @@ def get_import_group_objects(obj, scene=None):
     ]
 
 
+def get_import_group_root(obj, scene=None):
+    """Return the common MovieStudio root of an imported object."""
+
+    if obj is None:
+        return None
+
+    if scene is None:
+        scene = bpy.context.scene
+
+    group_id = get_import_group(obj)
+
+    if group_id is None:
+        return obj
+
+    for candidate in scene.objects:
+        if (
+            candidate.get(IMPORT_GROUP_PROPERTY) == group_id
+            and candidate.type == "EMPTY"
+            and candidate.parent is None
+        ):
+            return candidate
+
+    return obj
+
+
 def select_import_group(obj, context=None):
-    """Select every object from the same FBX import as the given object."""
+    """Select the common root of a MovieStudio import."""
 
     if context is None:
         context = bpy.context
@@ -102,17 +127,20 @@ def select_import_group(obj, context=None):
     if obj is None:
         return []
 
-    group_objects = get_import_group_objects(
+    root = get_import_group_root(
         obj,
         context.scene,
     )
 
+    if root is None:
+        return []
+
     select_objects(
-        group_objects,
-        active_object=obj,
+        [root],
+        active_object=root,
     )
 
-    return group_objects
+    return [root]
 
 
 # ============================================================
