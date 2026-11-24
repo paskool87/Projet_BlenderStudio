@@ -84,19 +84,6 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
         )
 
         # ----------------------------------------------------
-        # ANIMATION
-        # ----------------------------------------------------
-
-        layout.separator()
-        layout.label(text="Animation")
-
-        layout.operator(
-            "moviestudio.insert_transform_keyframes",
-            text="Insérer des images clés",
-            icon="KEY_HLT",
-        )
-
-        # ----------------------------------------------------
         # TIMELINE VISIBILITY
         # ----------------------------------------------------
 
@@ -156,4 +143,32 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             "moviestudio.create_floor",
             text="Créer le sol quadrillé",
             icon="MESH_GRID",
+        )
+
+
+class MOVIESTUDIO_PT_animation_panel(bpy.types.Panel):
+    """Animation tools in a dedicated collapsible panel."""
+
+    bl_label = "Animation"
+    bl_idname = "MOVIESTUDIO_PT_animation_panel"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "MovieStudio"
+    bl_parent_id = "MOVIESTUDIO_PT_panel"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label(text="Images clés", icon="KEY_HLT")
+        layout.operator(
+            "moviestudio.insert_transform_keyframes",
+            text="Insérer les clés de transformation",
+            icon="KEYFRAME",
+        )
+
+        layout.separator()
+        layout.label(
+            text="Trajectoires et animations avancées à venir.",
+            icon="INFO",
         )

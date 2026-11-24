@@ -4,7 +4,7 @@
 bl_info = {
     "name": "MovieStudio",
     "author": "MovieStudio",
-    "version": (0, 9, 3),
+    "version": (0, 9, 4),
     "blender": (5, 1, 0),
     "location": "View3D > Sidebar > MovieStudio",
     "description": (
@@ -34,7 +34,10 @@ from .visibility import (
     MOVIESTUDIO_OT_set_visibility_start,
     MOVIESTUDIO_OT_set_visibility_end,
 )
-from .interface import MOVIESTUDIO_PT_panel
+from .interface import (
+    MOVIESTUDIO_PT_panel,
+    MOVIESTUDIO_PT_animation_panel,
+)
 
 
 CLASSES = (
@@ -48,6 +51,7 @@ CLASSES = (
     MOVIESTUDIO_OT_set_visibility_start,
     MOVIESTUDIO_OT_set_visibility_end,
     MOVIESTUDIO_PT_panel,
+    MOVIESTUDIO_PT_animation_panel,
 )
 
 
