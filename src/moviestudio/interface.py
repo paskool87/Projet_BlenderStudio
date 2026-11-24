@@ -31,6 +31,12 @@ class MOVIESTUDIO_PT_panel(bpy.types.Panel):
             icon="IMPORT",
         )
 
+        layout.operator(
+            "moviestudio.import_character",
+            text="Importer un personnage",
+            icon="ARMATURE_DATA",
+        )
+
         # ----------------------------------------------------
         # IMPORT GROUP SELECTION
         # ----------------------------------------------------

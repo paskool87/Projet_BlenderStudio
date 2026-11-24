@@ -17,6 +17,7 @@ bl_info = {
 import bpy
 
 from .import_blend import MOVIESTUDIO_OT_import_blend
+from .import_character import MOVIESTUDIO_OT_import_character
 from .preparation import (
     MOVIESTUDIO_OT_validate_transforms,
     MOVIESTUDIO_OT_mark_unprepared,
@@ -38,6 +39,7 @@ from .interface import MOVIESTUDIO_PT_panel
 
 CLASSES = (
     MOVIESTUDIO_OT_import_blend,
+    MOVIESTUDIO_OT_import_character,
     MOVIESTUDIO_OT_validate_transforms,
     MOVIESTUDIO_OT_mark_unprepared,
     MOVIESTUDIO_OT_insert_transform_keyframes,
